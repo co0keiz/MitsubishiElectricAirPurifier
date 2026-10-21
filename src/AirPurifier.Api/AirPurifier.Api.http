@@ -1,0 +1,85 @@
+@baseUrl = http://localhost:5080
+
+### Fresh status
+GET {{baseUrl}}/api/purifier/status
+
+### Power ON (verified by readback)
+PUT {{baseUrl}}/api/purifier/power
+Content-Type: application/json
+
+{"on": true}
+
+### Power OFF (verified by readback)
+PUT {{baseUrl}}/api/purifier/power
+Content-Type: application/json
+
+{"on": false}
+
+### Normal auto mode
+PUT {{baseUrl}}/api/purifier/auto-mode
+Content-Type: application/json
+
+{"mode": "normal"}
+
+### Night auto mode
+PUT {{baseUrl}}/api/purifier/auto-mode
+Content-Type: application/json
+
+{"mode": "night"}
+
+### Turbo auto mode
+PUT {{baseUrl}}/api/purifier/auto-mode
+Content-Type: application/json
+
+{"mode": "turbo"}
+
+### Manual Silent
+PUT {{baseUrl}}/api/purifier/manual-speed
+Content-Type: application/json
+
+{"speed": "silent"}
+
+### Manual Low
+PUT {{baseUrl}}/api/purifier/manual-speed
+Content-Type: application/json
+
+{"speed": "low"}
+
+### Manual Mid
+PUT {{baseUrl}}/api/purifier/manual-speed
+Content-Type: application/json
+
+{"speed": "mid"}
+
+### Manual High
+PUT {{baseUrl}}/api/purifier/manual-speed
+Content-Type: application/json
+
+{"speed": "high"}
+
+### Manual Turbo (distinct from Auto Turbo)
+PUT {{baseUrl}}/api/purifier/manual-speed
+Content-Type: application/json
+
+{"speed": "turbo"}
+
+### Start pre-filter auto cleaning (requires power ON; no JSON body)
+POST {{baseUrl}}/api/purifier/auto-cleaning
+
+### Smart Search ON (requires power ON)
+PUT {{baseUrl}}/api/purifier/smart-search
+Content-Type: application/json
+
+{"enabled": true}
+
+### Smart Search OFF
+PUT {{baseUrl}}/api/purifier/smart-search
+Content-Type: application/json
+
+{"enabled": false}
+
+### OpenAPI specification
+GET {{baseUrl}}/openapi/v1.json
+
+### Scalar interactive API reference (open in a browser)
+GET {{baseUrl}}/scalar/v1

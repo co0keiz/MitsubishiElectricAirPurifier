@@ -1,1 +1,9 @@
-<Solution />
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AirPurifier.Core/AirPurifier.Core.csproj" />
+    <Project Path="src/AirPurifier.Api/AirPurifier.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AirPurifier.Tests/AirPurifier.Tests.csproj" />
+  </Folder>
+</Solution>
