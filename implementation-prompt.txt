@@ -1,0 +1,13 @@
+Build local control software for my Mitsubishi Electric MA-EW85S-E air purifier using the attached verified protocol specification and reference client. First implement a reusable asynchronous Python protocol library. Then implement either a Home Assistant custom integration or a local REST API wrapper, according to the target I choose below. Do not build both front ends unless I request both.
+
+Target: [Home Assistant custom integration / local REST API].
+
+My tested device is at 192.168.1.53, reports API MAC 70:61:be:5b:6d:1e, model HAP MA-EW85S, and firmware 80.00. Make the host configurable; use the returned MAC for stable identity. Reading status and turning power on/off are verified. Fan speed, modes, louvers, filter life, and air-quality fields remain unverified, so do not invent their mappings.
+
+The device uses HTTP POST /smart with an encrypted ESV XML envelope, AES-128-CBC, key b"unregistered\x00\x00\x00\x00", a random 16-byte IV, ISO/IEC 7816-4 padding, and Base64 of IV followed by ciphertext. No HTTP authentication was needed for /smart. A read-only inner request is exactly <CSV></CSV>. Decrypt the ESV response to LSV XML and find a 22-byte CODE/VALUE frame with prefix fc6201351002. Validate its checksum. Byte 8 is 0x31 for ON and 0x30 for OFF.
+
+For a power write, clone a fresh validated status frame, set indices 1=0x41, 5=0x01, 6=0x01, 7=0x00, and 8 to the desired power value. Preserve other fields and recompute the last byte as (-sum(frame[1:-1])) & 0xff. Encrypt <CSV><CODE><VALUE>{frame.hex()}</VALUE></CODE></CSV>. The initial reply can show the previous state. Confirm success with a separate status request after about five seconds, with bounded retry handling.
+
+Serialize each device's operations. Use explicit desired states, robust validation, bounded timeouts, safe handling of ambiguous network failures, and confirmed state reporting. Do not reset the purifier, modify its Wi-Fi configuration, toggle debug mode, enable ECHONET, change cloud settings, or send arbitrary experimental commands as part of routine operation. Keep the wrapper on the trusted local network.
+
+Add meaningful tests using the captured ON/OFF status frames and exact successful command frames in the specification. Cover checksum calculation, field preservation, padding/encryption round trips, malformed responses, unknown models/states, delayed readback, timeout recovery, and device identity mismatches. For Home Assistant, follow the current official integration conventions and start with a power switch. For a REST API, return confirmed results or explicit pending/error states. Do not run live power-cycle tests until the implementation and offline checks are ready for review.
