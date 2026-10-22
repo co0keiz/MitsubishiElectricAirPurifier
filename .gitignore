@@ -4,3 +4,13 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 /ma-ew85s-auto-modes.json
+.venv/
+.tools/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.coverage
+htmlcov/
+build/
+*.egg-info/
+pytest-cache-files-*/
