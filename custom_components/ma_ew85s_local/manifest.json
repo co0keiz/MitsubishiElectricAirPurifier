@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "config_flow": true,
   "codeowners": [],
-  "documentation": "https://github.com/OWNER/MitsubishiElectricAirPurifier#home-assistant-integration",
-  "issue_tracker": "https://github.com/OWNER/MitsubishiElectricAirPurifier/issues",
+  "documentation": "https://github.com/co0keiz/MitsubishiElectricAirPurifier#home-assistant-integration",
+  "issue_tracker": "https://github.com/co0keiz/MitsubishiElectricAirPurifier/issues",
   "integration_type": "device",
   "iot_class": "local_polling",
   "requirements": ["cryptography"]
