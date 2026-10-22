@@ -30,7 +30,7 @@ async def main():
 asyncio.run(main())
 ```
 
-The caller owns the session and closes it. Home Assistant supplies its shared session instead; the integration does not close it. Requests bypass proxy settings and do not follow redirects.
+The caller owns the session and closes it. Home Assistant supplies its shared session instead; the integration does not close it. Home Assistant also supplies `aiohttp` and `cryptography`, so the integration manifest does not redeclare those dependencies. The Python project's dependencies cover standalone use. Requests bypass proxy settings and do not follow redirects.
 
 `expected_mac=None` permits reading an unknown device during setup. Bind subsequent control to the learned MAC; an expected identity is checked on every response, including command replies and readbacks.
 

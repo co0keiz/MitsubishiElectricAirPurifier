@@ -21,7 +21,7 @@ def test_manifest_and_translations():
     assert manifest["domain"] == "ma_ew85s_local"
     assert manifest["config_flow"] is True
     assert manifest["iot_class"] == "local_polling"
-    assert manifest["requirements"] == ["cryptography"]
+    assert manifest["requirements"] == []  # aiohttp and cryptography are provided by HA.
     assert manifest["version"] == "0.1.0"
     assert all(key in manifest for key in ("documentation", "issue_tracker", "codeowners", "name"))
     strings = json.loads((ROOT / "strings.json").read_text())

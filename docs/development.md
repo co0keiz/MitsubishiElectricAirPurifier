@@ -45,6 +45,20 @@ python -m pytest -q tests/python/test_helpers_entities.py
 
 The protocol fixtures inject a fixed observation clock and a replacement for the five-second readback wait. Timeout tests still exercise bounded real request timeouts. With the HA plugin installed, test sockets are restricted to loopback. The fake purifier decrypts requests, validates commands and preserved fields, and encrypts its responses.
 
+## Hassfest validation
+
+Run Home Assistant's official validator with Docker from the repository root (PowerShell or Bash):
+
+```text
+docker run --rm -v "${PWD}/custom_components:/github/workspace/custom_components:ro" ghcr.io/home-assistant/hassfest:latest
+```
+
+This checks integration metadata, dependency declarations, translations, icons, and other integration structure. The source mount is read-only. It complements the runtime tests; a hassfest pass does not establish communication with real hardware.
+
+The integration uses the `aiohttp` and `cryptography` versions provided by Home Assistant. Hassfest rejects custom integrations that repeat HA's own dependencies in their manifests, so this manifest has an empty `requirements` list. `pyproject.toml` still declares dependencies for standalone Python use.
+
+[The hassfest workflow](../.github/workflows/hassfest.yml) runs the official action on pushes and pull requests, and supports manual runs. The action follows Home Assistant's validator updates; the local Docker command uses its current `latest` image.
+
 ## C# regression suite
 
 ```powershell
@@ -80,6 +94,6 @@ Live hardware experiments are separate from routine validation and require expli
 
 ## CI and recorded baseline
 
-[The Python workflow](../.github/workflows/python-tests.yml) installs `.[test,ha-test]` on Ubuntu/Python 3.14 and runs the full Python suite. The C# regression suite is currently run separately.
+[The Python workflow](../.github/workflows/python-tests.yml) installs `.[test,ha-test]` on Ubuntu/Python 3.14 and runs the full Python suite. The separate hassfest workflow validates integration metadata. The C# regression suite is currently run separately.
 
 The recorded 22 October 2026 baseline is **217 Python/HA tests** and **109 C# tests** passing. The Python protocol/packaging subset passed **174 tests** on Windows with three HA modules skipped. Counts describe that validation run; the next test run is the authority for the current checkout.
