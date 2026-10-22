@@ -1,0 +1,12 @@
+{
+  "domain": "ma_ew85s_local",
+  "name": "MA-EW85S-E Local",
+  "version": "0.1.0",
+  "config_flow": true,
+  "codeowners": [],
+  "documentation": "https://github.com/OWNER/MitsubishiElectricAirPurifier#home-assistant-integration",
+  "issue_tracker": "https://github.com/OWNER/MitsubishiElectricAirPurifier/issues",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "requirements": ["cryptography"]
+}

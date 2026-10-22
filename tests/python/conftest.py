@@ -36,3 +36,22 @@ async def client(device):
     async with ClientSession(trust_env=False) as session:
         yield PurifierClient(session, device.host, expected_mac=MAC, sleep=instant_sleep,
                              clock=lambda: NOW)
+
+
+@pytest.fixture
+async def ha_entry(hass, device, enable_custom_integrations, monkeypatch):
+    from homeassistant.const import CONF_HOST
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+    from custom_components.ma_ew85s_local.const import DOMAIN
+
+    # Keep the real encrypted transport, replace only the five-second wait.
+    original_init = PurifierClient.__init__
+    def init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs, sleep=instant_sleep)
+    monkeypatch.setattr(PurifierClient, "__init__", init)
+    entry = MockConfigEntry(domain=DOMAIN, unique_id=MAC, title="Test purifier",
+                            data={CONF_HOST: device.host})
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return entry

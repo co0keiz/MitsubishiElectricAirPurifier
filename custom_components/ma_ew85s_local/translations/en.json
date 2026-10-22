@@ -1,0 +1,28 @@
+{
+  "title": "MA-EW85S-E Local",
+  "config": {
+    "step": {
+      "user": {"title": "Connect to the purifier", "data": {"host": "Host or IP address"}},
+      "reconfigure": {"title": "Change purifier address", "data": {"host": "Host or IP address"}}
+    },
+    "error": {
+      "cannot_connect": "Could not read a valid purifier status. Check its address and network connection.",
+      "unsupported_firmware": "Only firmware 80.00 is supported."
+    },
+    "abort": {
+      "already_configured": "This purifier is already configured.",
+      "unique_id_mismatch": "This address belongs to a different purifier.",
+      "reconfigure_successful": "The purifier address was updated."
+    }
+  },
+  "entity": {
+    "fan": {
+      "purifier": {
+        "name": "Purifier",
+        "state_attributes": {
+          "preset_mode": {"state": {"auto_normal": "Auto Normal", "auto_night": "Auto Night", "auto_turbo": "Auto Turbo"}}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "entity": {
+    "fan": {"purifier": {"default": "mdi:air-purifier"}}
+  }
+}
