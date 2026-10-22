@@ -118,4 +118,4 @@ async def test_unload_reload(hass, device, ha_entry):
     assert await hass.config_entries.async_setup(ha_entry.entry_id)
     await hass.async_block_till_done()
     assert hass.states.get(fan).state == "on"
-    assert len(er.async_get(hass).entities) == 1
+    assert len(er.async_get(hass).entities) == 5

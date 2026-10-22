@@ -1,5 +1,9 @@
 {
   "entity": {
-    "fan": {"purifier": {"default": "mdi:air-purifier"}}
+    "fan": {"purifier": {"default": "mdi:air-purifier"}},
+    "switch": {"smart_search": {"default": "mdi:radar"}},
+    "button": {"start_auto_cleaning": {"default": "mdi:broom"}},
+    "binary_sensor": {"auto_cleaning": {"default": "mdi:broom"}},
+    "sensor": {"wifi_signal": {"default": "mdi:wifi"}}
   }
 }

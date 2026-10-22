@@ -16,6 +16,10 @@
     }
   },
   "entity": {
+    "switch": {"smart_search": {"name": "Smart Search"}},
+    "button": {"start_auto_cleaning": {"name": "Start auto cleaning"}},
+    "binary_sensor": {"auto_cleaning": {"name": "Auto cleaning"}},
+    "sensor": {"wifi_signal": {"name": "Wi-Fi signal"}},
     "fan": {
       "purifier": {
         "name": "Purifier",
