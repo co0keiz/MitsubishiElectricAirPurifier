@@ -1,8 +1,25 @@
-# Mitsubishi Electric Air Purifier API
+# Mitsubishi Electric Air Purifier local control
 
-ASP.NET Core 10 API for the locally verified MA-EW85S-E, firmware **80.00**. It reads status, switches power, selects **Normal**, **Night**, or **Turbo** auto mode, selects **Silent**, **Low**, **Mid**, **High**, or **Turbo** manual speed, switches **Smart Search ON/OFF**, and starts pre-filter **auto cleaning** through a native asynchronous C# client. PowerShell and the learned PowerShell profile are not required.
+Local control for the Mitsubishi Electric **MA-EW85S-E**, firmware **80.00**, through a Home Assistant custom integration, an ASP.NET Core 10 API, reusable Python and C# clients, and a standalone PowerShell reference client. Each implementation talks directly to the purifier on the LAN.
+
+Supported controls are power, **Normal**, **Night**, and **Turbo** auto modes, **Silent**, **Low**, **Mid**, **High**, and **Turbo** manual speeds, **Smart Search ON/OFF**, and pre-filter **auto cleaning**. Home Assistant and the API each work independently of PowerShell and its learned mode profile.
 
 Owner-labeled captures confirm all manual speeds on firmware `80.00`: **Silent=`0x30`, Low=`0x31`, Mid=`0x32`, High=`0x33`, Turbo=`0x34`**. Manual Turbo (`0x34`) is separate from Auto Turbo (`0x43`).
+
+## Documentation
+
+| Start here | Guide |
+| --- | --- |
+| Add the purifier to Home Assistant | [Integration installation and usage](custom_components/ma_ew85s_local/README.md) |
+| Run the HTTP API | [API setup and configuration](src/AirPurifier.Api/README.md) |
+| Use the C# client in another application | [AirPurifier.Core](src/AirPurifier.Core/README.md) |
+| Use the Python client directly | [Async Python protocol client](custom_components/ma_ew85s_local/protocol/README.md) |
+| Set up development and run offline tests | [Development guide](docs/development.md) |
+| Understand the components and command lifecycle | [Architecture](docs/architecture.md) |
+| Diagnose setup or command failures | [Troubleshooting](docs/troubleshooting.md) |
+| Find all guides and protocol references | [Documentation index](docs/README.md) |
+
+The [protocol specification](MA-EW85S-local-control.md) is the source of truth for packet layouts, captured fixtures, and hardware evidence. The C# API and PowerShell client have dated hardware verification; Python and Home Assistant have offline simulator verification. Other models and firmware have no verified write support.
 
 ## Home Assistant integration
 
@@ -17,8 +34,8 @@ Supported entities:
 
 To install through HACS:
 
-1. Set `documentation` and `issue_tracker` in `custom_components/ma_ew85s_local/manifest.json` to your GitHub repository's README and issues URLs (the `OWNER` URLs are publishing placeholders because this checkout has no Git remote). Publish the checkout and use that repository's URL. The integration files must remain under `custom_components/ma_ew85s_local/`.
-2. In HACS, open **Custom repositories**, add the repository URL, and select **Integration**.
+1. Use this repository URL: `https://github.com/co0keiz/MitsubishiElectricAirPurifier`.
+2. In HACS, open **Custom repositories**, add that URL, and select **Integration**.
 3. Download **MA-EW85S-E Local** and restart Home Assistant.
 4. Open **Settings → Devices & services → Add integration**, select **MA-EW85S-E Local**, and enter the purifier's host name or IP address.
 
@@ -34,11 +51,16 @@ For offline Python protocol tests on Windows or Linux, install Python 3.13+ and 
 
 ```text
 python -m venv .venv
+```
+
+Activate it with `.venv\Scripts\Activate.ps1` in PowerShell or `source .venv/bin/activate` on Linux, then run:
+
+```text
 python -m pip install ".[test]"
 python -m pytest -q
 ```
 
-Run those commands with the virtual environment activated (`.venv\Scripts\Activate.ps1` in PowerShell or `source .venv/bin/activate` on Linux). Home Assistant tests require **Linux and Python 3.14** for the pinned Home Assistant 2026.10.2 test environment:
+Home Assistant tests require **Linux and Python 3.14** for the pinned Home Assistant 2026.10.2 test environment:
 
 ```text
 python -m pip install ".[test,ha-test]"
@@ -201,4 +223,4 @@ Tests use a simulated encrypted purifier and an in-process ASP.NET Core host. Th
 
 On 21 October 2026, all **109 tests passed**, including Smart Search, cleaning, and Scalar/OpenAPI checks. PowerShell's offline checks also passed. Live tests verified all five manual speeds through both PowerShell and the native API, preserving power and unrelated settings. Auto-mode control, a power no-op, and cleaning start were verified through the API. Smart Search ON/OFF was then verified through both clients, leaving **Smart Search OFF, power ON, Auto Normal**, matching the owner's selected settings. Temporary test servers were stopped after validation.
 
-See [MA-EW85S-local-control.md](MA-EW85S-local-control.md) for the protocol specification: the [verification matrix](MA-EW85S-local-control.md#verification-matrix), the [frame byte map](MA-EW85S-local-control.md#5-general-state-frame), the [write procedure](MA-EW85S-local-control.md#6-writing-settings), the [captured fixtures](MA-EW85S-local-control.md#8-fixtures-appendix), the [dated hardware evidence](MA-EW85S-local-control.md#11-evidence-log-and-references), and the [Home Assistant integration design](MA-EW85S-local-control.md#93-home-assistant-integration-design). The existing PowerShell reference remains available independently.
+See [MA-EW85S-local-control.md](MA-EW85S-local-control.md) for the protocol specification: the [verification matrix](MA-EW85S-local-control.md#verification-matrix), the [frame byte map](MA-EW85S-local-control.md#5-general-state-frame), the [write procedure](MA-EW85S-local-control.md#6-writing-settings), the [captured fixtures](MA-EW85S-local-control.md#8-fixtures-appendix), the [dated hardware evidence](MA-EW85S-local-control.md#11-evidence-log-and-references), and the [Home Assistant integration](MA-EW85S-local-control.md#93-home-assistant-integration). The existing PowerShell reference remains available independently.
