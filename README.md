@@ -4,6 +4,49 @@ ASP.NET Core 10 API for the locally verified MA-EW85S-E, firmware **80.00**. It 
 
 Owner-labeled captures confirm all manual speeds on firmware `80.00`: **Silent=`0x30`, Low=`0x31`, Mid=`0x32`, High=`0x33`, Turbo=`0x34`**. Manual Turbo (`0x34`) is separate from Auto Turbo (`0x43`).
 
+## Home Assistant integration
+
+The independent `MA-EW85S-E Local` custom integration controls the purifier directly on the LAN. It requires **Home Assistant 2026.10 or later** and supports only the verified **MA-EW85S-E firmware 80.00**. No account, cloud service, PowerShell process, or ASP.NET API is needed.
+
+Supported entities:
+
+- Fan: power, Auto Normal/Night/Turbo presets, and five manual speeds at 20/40/60/80/100%.
+- Smart Search switch with explicit ON/OFF.
+- Start auto cleaning button and a separate cleaning activity binary sensor.
+- Wi-Fi signal sensor in dBm, diagnostic and disabled by default.
+
+To install through HACS:
+
+1. Set `documentation` and `issue_tracker` in `custom_components/ma_ew85s_local/manifest.json` to your GitHub repository's README and issues URLs (the `OWNER` URLs are publishing placeholders because this checkout has no Git remote). Publish the checkout and use that repository's URL. The integration files must remain under `custom_components/ma_ew85s_local/`.
+2. In HACS, open **Custom repositories**, add the repository URL, and select **Integration**.
+3. Download **MA-EW85S-E Local** and restart Home Assistant.
+4. Open **Settings → Devices & services → Add integration**, select **MA-EW85S-E Local**, and enter the purifier's host name or IP address.
+
+See the [HACS custom integration requirements](https://www.hacs.dev/docs/publish/integration/) for publishing metadata.
+
+Alternatively, copy `custom_components/ma_ew85s_local` into your Home Assistant configuration's `custom_components` directory and restart. Setup reads status and learns the MAC address as the device identity. Use the integration's **Reconfigure** action after an IP address change; an address belonging to a different MAC is rejected.
+
+The integration polls every 30 seconds. Each write reads fresh state, sends one command, and confirms it through up to three separate readbacks five seconds apart. Writes are never automatically resent. An uncertain result raises an error and refreshes status; a network failure makes the entities unavailable. Mode, speed, Smart Search, and cleaning actions require power ON. Calling the fan's turn-on action with a preset or percentage powers on first and then selects it. Cleaning confirms the cycle's start; the purifier ends the cycle automatically.
+
+Cloud, ECHONET, Wi-Fi configuration, reset, raw commands, discovery, louvre position, air quality, and filter life are outside this integration's scope. Diagnostics redact the host, MAC, and the state-bearing portion of the frame.
+
+For offline Python protocol tests on Windows or Linux, install Python 3.13+ and run:
+
+```text
+python -m venv .venv
+python -m pip install ".[test]"
+python -m pytest -q
+```
+
+Run those commands with the virtual environment activated (`.venv\Scripts\Activate.ps1` in PowerShell or `source .venv/bin/activate` on Linux). Home Assistant tests require **Linux and Python 3.14** for the pinned Home Assistant 2026.10.2 test environment:
+
+```text
+python -m pip install ".[test,ha-test]"
+python -m pytest -q
+```
+
+Without Home Assistant installed, the three HA test modules are skipped. The full suite uses `pytest-homeassistant-custom-component` and an encrypted loopback-only simulator; it never sends commands to an appliance. CI runs the full suite on Linux. Python/HA support has been verified offline against the captured fixtures, with no live Python/HA hardware test.
+
 ## Run
 
 Install the .NET 10 SDK, then run from this repository:

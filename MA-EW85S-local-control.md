@@ -1,6 +1,6 @@
 # Mitsubishi Electric MA-EW85S-E: verified local control
 
-Protocol and integration specification for the Mitsubishi Electric MA-EW85S-E air purifier on its local network interface. It is the single reference for the PowerShell reference client, the ASP.NET Core API, the planned Python library, and the Home Assistant integration.
+Protocol and integration specification for the Mitsubishi Electric MA-EW85S-E air purifier on its local network interface. It is the single reference for the PowerShell reference client, the ASP.NET Core API, the native Python library, and the Home Assistant integration.
 
 This is an independently tested protocol description, not an official Mitsubishi specification. Findings apply to the tested unit and firmware (`80.00`). Dated live evidence is kept in [section 11](#11-evidence-log-and-references); every other section describes the current, authoritative behavior.
 
@@ -28,17 +28,17 @@ The IP and MAC above are installation-specific. A reusable integration must acce
 
 ### Verification matrix
 
-"Verified" means a live command or capture on the owner's unit, confirmed by a separate status request. Dates and timestamps are in the [evidence log](#112-dated-live-verification).
+"Verified" means a live command or capture on the owner's unit, confirmed by a separate status request. Dates and timestamps are in the [evidence log](#112-dated-live-verification). The Python / Home Assistant column uses **Verified offline** for simulator tests against these captured fixtures; it does not claim live Python/HA hardware verification.
 
 | Feature | Evidence | PowerShell | ASP.NET Core API | Python / Home Assistant |
 | --- | --- | --- | --- | --- |
-| Read status, identity, firmware, RSSI | Live status requests | Yes | Yes | Planned |
-| Power ON / OFF (byte 8) | Live ON → OFF → ON with separate readbacks | Yes | Yes | Planned |
-| Auto mode Normal `42` / Night `41` / Turbo `43` (byte 9) | Owner-labeled panel captures and live command readbacks | Yes (learned profile) | Yes | Planned |
-| Manual speed Silent `30` … Turbo `34` (byte 9) | Owner-labeled panel captures and live command readbacks | Yes | Yes | Planned |
-| Smart Search ON / OFF (byte 13) | Owner-confirmed capture change and live ON/OFF readbacks | Yes | Yes | Planned |
-| Pre-filter auto-cleaning start and activity flag (byte 14) | Owner-labeled running cycle and live start readbacks | Yes | Yes | Planned |
-| Wi-Fi signal (`RSSI`) | Reported value, for example `-58` dBm | Reported | Reported | Planned (diagnostic) |
+| Read status, identity, firmware, RSSI | Live status requests | Yes | Yes | Verified offline |
+| Power ON / OFF (byte 8) | Live ON → OFF → ON with separate readbacks | Yes | Yes | Verified offline |
+| Auto mode Normal `42` / Night `41` / Turbo `43` (byte 9) | Owner-labeled panel captures and live command readbacks | Yes (learned profile) | Yes | Verified offline |
+| Manual speed Silent `30` … Turbo `34` (byte 9) | Owner-labeled panel captures and live command readbacks | Yes | Yes | Verified offline |
+| Smart Search ON / OFF (byte 13) | Owner-confirmed capture change and live ON/OFF readbacks | Yes | Yes | Verified offline |
+| Pre-filter auto-cleaning start and activity flag (byte 14) | Owner-labeled running cycle and live start readbacks | Yes | Yes | Verified offline |
+| Wi-Fi signal (`RSSI`) | Reported value, for example `-58` dBm | Reported | Reported | Verified offline (diagnostic) |
 | Manual louvre positioning | Not tested | No | No | Out of scope |
 | PM2.5 / air-quality interpretation | Not decoded | No | No | Out of scope |
 | Filter-life interpretation | Not decoded | No | No | Out of scope |
@@ -465,15 +465,15 @@ Status includes `operatingMode`, `autoMode`, `manualSpeed`, `autoModeRaw`, nulla
 
 The API is not part of the device protocol and is not required by the Home Assistant integration.
 
-### 9.3 Home Assistant integration (design)
+### 9.3 Home Assistant integration
 
-Domain `ma_ew85s_local`, a HACS custom repository under `custom_components/ma_ew85s_local/`, `iot_class: local_polling`. It talks to the purifier directly through a native asynchronous Python port of the C# client placed in the subpackage `protocol/`, which imports nothing from Home Assistant. It does not depend on the ASP.NET Core API or PowerShell. Recheck current Home Assistant developer documentation when implementing; the links are in [section 11.3](#113-references).
+Domain `ma_ew85s_local`, a Home Assistant 2026.10+ HACS custom repository under `custom_components/ma_ew85s_local/`, `iot_class: local_polling`. It talks to the purifier directly through a native asynchronous Python port of the C# client placed in the subpackage `protocol/`, which imports nothing from Home Assistant. It does not depend on the ASP.NET Core API or PowerShell. Recheck current Home Assistant developer documentation when implementing; the links are in [section 11.3](#113-references).
 
 **Entities**
 
 | Entity | Platform | Source | Behavior |
 | --- | --- | --- | --- |
-| Purifier | `fan` | bytes 8, 9 | `TURN_ON`/`TURN_OFF`; `SET_SPEED` with five manual speeds mapped to 20/40/60/80/100 % (`ordered_list_item_to_percentage`, `speed_count=5`); `PRESET_MODE` `auto_normal`, `auto_night`, `auto_turbo`. In auto mode `percentage` is `None` and `preset_mode` is set; in manual mode the reverse |
+| Purifier (device name) | `fan` | bytes 8, 9 | `TURN_ON`/`TURN_OFF`; `SET_SPEED` with five manual speeds mapped to 20/40/60/80/100 % (`ordered_list_item_to_percentage`, `speed_count=5`); `PRESET_MODE` `auto_normal`, `auto_night`, `auto_turbo`. In auto mode `percentage` is `None` and `preset_mode` is set; in manual mode the reverse |
 | Smart Search | `switch` | byte 13 | Explicit ON/OFF; unknown encoding → unknown state |
 | Start auto cleaning | `button` | mask `40` | One-shot start; no-op if already active |
 | Auto cleaning | `binary_sensor` (`running`) | byte 14 | Unknown encoding → state unknown |
@@ -504,9 +504,9 @@ Mode, speed, Smart Search, and cleaning writes require power ON and raise `Servi
 | `DeviceOff` | — | `ServiceValidationError` | — |
 | `UnsupportedFirmware` | — | `HomeAssistantError` | `unsupported_firmware` |
 
-**Diagnostics:** partially redact host, MAC, and the frame hex. Default setup never alters cloud, ECHONET, or Wi-Fi settings; unloading cleans up timers and sessions.
+**Diagnostics:** fully redact host and MAC, and redact the state-bearing portion of the frame hex. Default setup never alters cloud, ECHONET, or Wi-Fi settings. Unloading removes coordinator listeners and timers; the shared HTTP session remains owned by Home Assistant.
 
-Planned package layout:
+Implemented package layout:
 
 ```text
 custom_components/ma_ew85s_local/
@@ -516,7 +516,7 @@ custom_components/ma_ew85s_local/
   protocol/  __init__.py  client.py  codec.py  frame.py  models.py  errors.py
 ```
 
-The Python client is planned as `PurifierClient(session, host, expected_mac=None, request_timeout=5.0, readback_delay=5.0, readback_attempts=3)` with `async_get_status`, `async_set_power`, `async_set_auto_mode`, `async_set_manual_speed`, `async_start_auto_cleaning`, and `async_set_smart_search`, raising `PurifierError(code, command_may_have_succeeded)` with the codes in 7.2. These file names and signatures are a design; this layout is not yet an existing package.
+The Python client is `PurifierClient(session, host, *, expected_mac=None, request_timeout=5.0, readback_delay=5.0, readback_attempts=3, sleep=asyncio.sleep, clock=...)` with `async_get_status`, `async_set_power`, `async_set_auto_mode`, `async_set_manual_speed`, `async_start_auto_cleaning`, and `async_set_smart_search`, raising `PurifierError(code, command_may_have_succeeded)` with the codes in 7.2. The package is implemented and covered by the offline Python suite. `tests/python/` contains 217 passing tests with Home Assistant 2026.10.2 on Linux/Python 3.14; 174 protocol/packaging tests also pass independently on Windows, with the three HA modules skipped. The five entities are the fan (named for the device), Smart Search, Start auto cleaning, Auto cleaning, and Wi-Fi signal. HACS installation and test commands are in [README.md](README.md#home-assistant-integration).
 
 ## 10. Diagnostics, ECHONET, reachability, and security
 
@@ -564,6 +564,8 @@ All entries are 21 October 2026. Times are UTC. Each transition was confirmed by
 | Smart Search | The owner confirmed Smart Search was ON during the earlier captures, then switched it OFF. A capture at `19:58:54Z` returned the Smart Search OFF status frame; relative to idle Auto Normal only byte 13 changed `31` → `30` (plus checksum). The probe confirmed ON at `20:00:07Z` and OFF at `20:00:12Z`; PowerShell independently passed ON/OFF live checks; the native API confirmed ON at `20:04:16Z` and OFF at `20:04:21Z`. Power, mode, and other fields unchanged. Final state **Smart Search OFF, power ON, Auto Normal** |
 
 Offline test history (informational only; current counts are reported by the test runs): the C# suite grew from 55 to 82, 93, and finally 109 passing tests across the API, manual-speed, cleaning, and Smart Search work. PowerShell's expanded self-test passes. C# and PowerShell tests cover the exact command fixtures, field preservation, delayed readback, no-op, bounded timeout without resend, rejection of OFF/unknown/unsupported states, changed power/mode during readback, identity and firmware mismatches, HTTP validation, API keys, and OpenAPI authentication metadata.
+
+On 22 October 2026, the native Python/HA implementation passed **217 offline tests**, including all section 8 vectors, encrypted simulator exchanges, guards and readback semantics, config/reconfigure flows, all five entities, availability, diagnostics, and unload/reload. The existing C# suite still passed **109 tests** without source changes. These Python tests issued no live-device commands and performed no power cycling.
 
 ### 11.3 References
 
